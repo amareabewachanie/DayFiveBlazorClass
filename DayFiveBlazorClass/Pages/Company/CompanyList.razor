@@ -1,0 +1,73 @@
+﻿@page "/companies/list"
+@using Microsoft.EntityFrameworkCore;
+@inject EmployeeManagmentContext _context
+@inject IJSRuntime Js
+
+<PageTitle>Company List</PageTitle>
+<h2>Company List</h2>
+
+<a class="btn btn-success" href="/companies/create">
+    Add New Company
+</a>
+@if(Companies is not null)
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>City</th>
+                <th>Country</th>
+                <td>Actions</td>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var company in Companies)
+            {
+                <tr>
+                    <td>
+                        @company.Name
+                    </td>
+                    <td>
+                        @company.City
+                    </td>
+                    <td>
+                        @company.Country
+                    </td>
+                    <td class="btn btn-group">
+                        <a class="btn btn-outline-primary" href="/companies/edit/@company.Id">Edit</a>
+                        <a class="btn btn-outline-danger" @onclick="()=>DeleteCompanyHandler(company.Id)">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <h3>Loading ...</h3>
+}
+
+@code {
+    private List<Company> Companies { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+    private async Task DeleteCompanyHandler(int Id)
+    {
+
+        var companyTobeDeleted = await _context.Companies.FindAsync(Id);
+        var IsOk = await Js.InvokeAsync<bool>("confirm", $"Are you sure you want to delete {companyTobeDeleted.Name}?");
+        if (IsOk)
+        {
+            _context.Companies.Remove(companyTobeDeleted);
+            await _context.SaveChangesAsync();
+            await LoadData();
+        }
+       
+    }
+    private async Task LoadData()
+    {
+        Companies = await _context.Companies.ToListAsync();
+    }
+}

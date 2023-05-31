@@ -1,0 +1,73 @@
+﻿@page "/companies/edit/{companyId:int}"
+@inject EmployeeManagmentContext _context;
+<PageTitle>Edit Company</PageTitle>
+<h3>Edit Company @CompanyId</h3>
+@if(Company is not null)
+{
+    <EditForm Model="@Company" OnValidSubmit="@CompanyEditHandler">
+        <DataAnnotationsValidator/>
+        <div class="mb-3">
+            <input type="hidden" value="@Company.Id"/>
+            <label for="name" class="form-label">Name</label>
+            <InputText class="form-control" @bind-Value="Company.Name" id="name"/>
+            <ValidationMessage For="()=>Company.Name" />
+        </div>
+        <div class="mb-3">
+            <label for="city" class="form-label">City</label>
+            <InputText class="form-control" @bind-Value="Company.City" id="city"/>
+            <ValidationMessage For="()=>Company.City" />
+        </div>
+        <div class="mb-3">
+            <label for="country" class="form-label">Name</label>
+            <InputText class="form-control" @bind-Value="Company.Country" />
+            <ValidationMessage For="()=>Company.Country" />
+        </div>
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary" disabled="@IsLoading">Save Chnages</button>
+            <a class="btn btn-secondary" href="/companies/list">Cancel</a>
+        </div>
+    </EditForm>
+    @if (SuccessMessage is not null)
+    {
+        <br />
+        <div class="alert alert-success">@SuccessMessage</div>
+    }
+    @if (ErrorMessage is not null)
+    {
+        <br />
+        <div class="alert alert-error">@ErrorMessage</div>
+    }
+}
+@code {
+    [Parameter]
+    public int CompanyId { get; set; }
+    public Company? Company { get; set; }
+    private string? ErrorMessage { get; set; }
+    private string? SuccessMessage { get; set; }
+    private bool IsLoading { get; set; }
+    protected override async Task OnParametersSetAsync()
+    {
+
+        Company = await _context.Companies.FindAsync(CompanyId);
+
+
+    }
+    private async Task CompanyEditHandler()
+    {
+        SuccessMessage = null;
+        IsLoading = true;
+        try
+        {
+            _context.Companies.Update(Company);
+            await _context.SaveChangesAsync();
+            SuccessMessage = $"You have successfully update {Company.Name}";
+        }catch(Exception e)
+        {
+            ErrorMessage = e.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+}

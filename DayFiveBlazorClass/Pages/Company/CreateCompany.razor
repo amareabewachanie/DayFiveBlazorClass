@@ -1,0 +1,75 @@
+﻿@page "/companies/create"
+@inject EmployeeManagmentContext _context
+
+<PageTitle>Add Company</PageTitle>
+
+<h3>Add Company</h3>
+@if(Company is not null)
+{
+ <EditForm Model="@Company" OnValidSubmit="@ValidSubmitHandler">
+     <DataAnnotationsValidator/>
+     <div class="mb-3">
+         <label class="form-label" for="name">Name</label>
+            <InputText @bind-Value="Company.Name" id="name" class="form-control" />
+            <ValidationMessage For="()=>Company.Name"/>
+     </div>
+        <div class="mb-3">
+            <label class="form-label" for="city">City</label>
+            <InputText @bind-Value="Company.City" id="city" class="form-control" />
+            <ValidationMessage For="()=>Company.City" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label"  for="country">Country</label>
+            <InputText @bind-Value="Company.Country" id="country" class="form-control" />
+            <ValidationMessage For="()=>Company.Country" />
+        </div>
+        <div class="mb-3">
+           <button type="submit" class="btn btn-primary" disabled="@IsLoading">Save</button>
+           <a class="btn btn-secondary" href="/companies/list">Cancel</a>
+        </div>
+ </EditForm>   
+    @if(SuccessMessage is not null)
+    {
+        <div class="alert alert-success">
+            @SuccessMessage
+        </div>
+    }
+    @if(ErrorMessage is not null)
+    {
+        <div class="alert alert-success">
+            @ErrorMessage
+        </div>
+    }
+  
+}
+
+@code {
+    private Company Company{ get; set; }
+    private string? ErrorMessage{ get; set; }
+    private string? SuccessMessage{ get; set; }
+    private bool IsLoading { get; set; }
+    protected override void OnInitialized()
+    {
+        Company = new();
+    }
+    private async Task ValidSubmitHandler()
+    {
+        SuccessMessage = null;
+        IsLoading=true;
+        try
+        {
+            _context.Companies.Add(Company);
+            await _context.SaveChangesAsync();
+            SuccessMessage = $"Company {Company.Name} has been created successfully!";
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+            Company = new();
+        }
+    }
+}
